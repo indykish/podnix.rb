@@ -10,8 +10,19 @@ SANDBOX_HOST_OPTIONS = {
   :host => 'api.podnix.com',
       :nonblock => false,
    :port => 443
+   
 }
 
+  def nested_merge(other_hash={})
+    merge(other_hash) do |key, oldval, newval|
+      if oldval.is_a? Hash
+        oldval.nested_merge(newval)
+      else
+        newval
+      end
+    end
+  end
+  
 def podnix(options={})  
 s_options = SANDBOX_HOST_OPTIONS.merge({
   :api_key => sandbox_apikey  
@@ -21,7 +32,7 @@ s_options = SANDBOX_HOST_OPTIONS.merge({
 end
 
 def sandbox_apikey
-  "123-znsbKicQwKl4tZHQOXo3Olwls8BOrR3O"
+  ENV['PODNIX_API_KEY']
 end
 
 

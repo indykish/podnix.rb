@@ -14,6 +14,7 @@ end
 require "podnix/api/errors"
 require "podnix/api/version"
 require "podnix/api/images"
+require "podnix/api/models"
 require "podnix/api/servers"
 require "podnix/core/stuff"
 require "podnix/core/text"
@@ -37,8 +38,13 @@ module Podnix
       'X-Ruby-Platform' => RUBY_PLATFORM
     }
 
+    QUERY = {
+      :key => ENV['PODNIX_API_KEY']
+    }
+
     OPTIONS = {
       :headers => {},
+      :query => {},
       :host => 'api.podnix.com',
       :nonblock => false,
       :scheme => 'https'
@@ -134,8 +140,7 @@ module Podnix
 
     #Make a lazy connection.
     def connection
-      @options[:path] =@options[:path]+'?key='+"#{ENV['PODNIX_API_KEY']}"
-      encoded_api_header = @options
+      @options[:query] = QUERY.merge(@options[:query])
       @options[:headers] = HEADERS.merge(@options[:headers])
 
       Excon.defaults[:ssl_ca_file] = File.expand_path(File.join(File.dirname(__FILE__), "..", "certs", "cacert.pem"))
@@ -143,13 +148,17 @@ module Podnix
       if !File.exist?(File.expand_path(File.join(File.dirname(__FILE__), "..", "certs", "cacert.pem")))
         text.warn("Certificate file does not exist. SSL_VERIFY_PEER set as false")
         Excon.defaults[:ssl_verify_peer] = false
+      #elsif !File.readable_real?(File.expand_path(File.join(File.dirname(__FILE__), "..", "certs", "test.pem")))
+      #	text.warn("Certificate file is readable. SSL_VERIFY_PEER set as false")
+      #	Excon.defaults[:ssl_verify_peer] = false
       else
         text.info("Certificate found")
         Excon.defaults[:ssl_verify_peer] = true
       end
 
       text.info("HTTP Request Data:")
-      text.msg("> HTTP #{@options[:scheme]}://#{@options[:host]}")
+      text.msg("> HTTP #{@options[:scheme]}://#{@options[:host]}/#{@options[:query]}")
+
       @options.each do |key, value|
         text.msg("> #{key}: #{value}")
       end

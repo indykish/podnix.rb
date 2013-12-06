@@ -1,9 +1,9 @@
 module Podnix
   class API
 
-
-    def get_images
-      @options = {:path => '/images/list',:body => ""}.merge(@options)
+    # GET /servers
+    def get_models
+      @options = {:path => '/models/list',:body => ""}.merge(@options)
 
       request(
         :expects  => 200,
