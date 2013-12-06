@@ -6,9 +6,6 @@ require "zlib"
 require 'openssl'
 require 'multi_json'
 
-# open it up when needed. This will be needed when a new customer onboarded via pug.
-require "securerandom"
-
 __LIB_DIR__ = File.expand_path(File.join(File.dirname(__FILE__), ".."))
 unless $LOAD_PATH.include?(__LIB_DIR__)
 $LOAD_PATH.unshift(__LIB_DIR__)
@@ -20,18 +17,11 @@ require "podnix/api/images"
 require "podnix/api/servers"
 require "podnix/core/stuff"
 require "podnix/core/text"
-require "podnix/core/json_compat"
 require "podnix/core/error"
 require "podnix/core/images"
 require "podnix/core/images_collection"
 require "podnix/core/server"
 require "podnix/core/server_collection"
-
-#we may nuke logs out of the api
-#require "megam/api/logs"
-
-# Do you need a random seed now ?
-#srand
 
 module Podnix
   class API
@@ -74,8 +64,7 @@ module Podnix
     def initialize(options={})
       @options = OPTIONS.merge(options)
       @api_key = @options.delete(:api_key) || ENV['PODNIX_API_KEY']
-      #@email = @options.delete(:email)
-      raise ArgumentError, "You must specify [:email, :api_key]" if @api_key.nil?
+      raise ArgumentError, "You must specify [:api_key]" if @api_key.nil?
     end
 
     def request(params,&block)
@@ -130,24 +119,13 @@ module Podnix
         text.msg "#{text.color("#{response.body}", :white)}"
 
         begin
-          begin
-            response.body = MultiJson.load(response.body.chomp)
-          rescue
-          end
-          text.msg("#{text.color("RESPONSE: Ruby Object", :magenta, :bold)}")
-
-          text.msg "#{text.color("#{response.body}", :white, :bold)}"
-        rescue Exception => jsonerr
-          text.error(jsonerr)
-          raise(jsonerr)
-        # exception = Podnix::JSONCompat.from_json(response_body)
-        # msg = "HTTP Request Returned #{response.code} #{response.message}: "
-        # msg << (exception["error"].respond_to?(:join) ? exception["error"].join(", ") : exception["error"].to_s)
-        # text.error(msg)
+          response.body = MultiJson.load(response.body.chomp)
+        rescue
         end
+        text.msg("#{text.color("RESPONSE: Ruby Object", :magenta, :bold)}")
+        text.msg "#{text.color("#{response.body}", :white, :bold)}"
       end
       text.msg "#{text.color("END(#{(Time.now - start).to_s}s)", :blue, :bold)}"
-      # reset (non-persistent) connection
       @connection.reset
       response
     end
@@ -156,27 +134,15 @@ module Podnix
 
     #Make a lazy connection.
     def connection
-
-      puts "TEST API KEY ===========================> #{ENV['PODNIX_API_KEY']}"
       @options[:path] =@options[:path]+'?key='+"#{ENV['PODNIX_API_KEY']}"
       encoded_api_header = @options
       @options[:headers] = HEADERS.merge(@options[:headers])
 
-      #SSL certificate file paths
-      #If ssl_ca_path and file specified shows error
-      #Only file pass through
-      #Excon.defaults[:ssl_ca_path] = "/etc/ssl/certs"
-      #ENV['SSL_CERT_DIR'] = "/etc/ssl/certs"
       Excon.defaults[:ssl_ca_file] = File.expand_path(File.join(File.dirname(__FILE__), "..", "certs", "cacert.pem"))
-      #ENV['SSL_CERT_FILE'] = File.expand_path(File.join(File.dirname(__FILE__), "..", "certs", "cacert.pem"))
 
       if !File.exist?(File.expand_path(File.join(File.dirname(__FILE__), "..", "certs", "cacert.pem")))
         text.warn("Certificate file does not exist. SSL_VERIFY_PEER set as false")
         Excon.defaults[:ssl_verify_peer] = false
-      #elsif !File.readable_real?(File.expand_path(File.join(File.dirname(__FILE__), "..", "certs", "test.pem")))
-      #	puts "==================> Test CER 2===============>"
-      #	text.warn("Certificate file is readable. SSL_VERIFY_PEER set as false")
-      #	Excon.defaults[:ssl_verify_peer] = false
       else
         text.info("Certificate found")
         Excon.defaults[:ssl_verify_peer] = true
@@ -191,13 +157,6 @@ module Podnix
       @connection = Excon.new("#{@options[:scheme]}://#{@options[:host]}",@options)
     end
 
-  ## encode header as per rules.
-  # The input hash will have
-  # :api_key, :email, :body, :path
-  # The output will have
-  # :hmac
-  # :date
-  # (Refer https://Github.com/indykish/megamplay.git/test/AuthenticateSpec.scala)
   end
 
 end
