@@ -13,16 +13,7 @@ SANDBOX_HOST_OPTIONS = {
    
 }
 
-  def nested_merge(other_hash={})
-    merge(other_hash) do |key, oldval, newval|
-      if oldval.is_a? Hash
-        oldval.nested_merge(newval)
-      else
-        newval
-      end
-    end
-  end
-  
+
 def podnix(options={})  
 s_options = SANDBOX_HOST_OPTIONS.merge({
   :api_key => sandbox_apikey  

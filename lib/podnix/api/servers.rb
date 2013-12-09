@@ -28,7 +28,7 @@ module Podnix
 	@options = { :path => "/servers/add",:body => ""}.merge(@options)
 	     @options[:query] = @options[:query].merge(new_server)
       request(
-        :expects  => 201,
+        :expects  => 200,
         :method   => :post,
         :body     => @options[:body]
       )
