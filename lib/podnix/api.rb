@@ -16,13 +16,7 @@ require "podnix/api/version"
 require "podnix/api/images"
 require "podnix/api/models"
 require "podnix/api/servers"
-require "podnix/core/stuff"
 require "podnix/core/text"
-require "podnix/core/error"
-require "podnix/core/images"
-require "podnix/core/images_collection"
-require "podnix/core/server"
-require "podnix/core/server_collection"
 
 module Podnix
   class API

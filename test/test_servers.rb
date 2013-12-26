@@ -5,8 +5,6 @@ class TestApps < MiniTest::Unit::TestCase
 # https://api.podnix.com/servers/list?key=XXX
   def test_get_servers
     response = podnix.get_servers
-    #puts "=================> Response ========>"
-    #puts response.inspect
     assert_equal(200, response.status)
   end
 
@@ -16,8 +14,6 @@ class TestApps < MiniTest::Unit::TestCase
 
   def test_get_server
     response = podnix.get_server({:id => '395'})
-    #puts "=================> Response ========>"
-    #puts response.inspect
     assert_equal(200, response.status)
   end
 
